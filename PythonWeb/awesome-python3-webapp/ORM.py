@@ -1,5 +1,8 @@
+import asyncio,logging
+import aiomysql
+
 #创建连接池
-@asycio coroutine
+@asyncio.coroutine
 def create_pool(loop,**kw):
 	logging.info('create database connection pool...')
 	global __pool
@@ -20,7 +23,7 @@ def create_pool(loop,**kw):
 def select(sql,args,size=None):
 	log(sql,args)
 	global __pool
-	with (yield from.__pool) as connection:
+	with (yield from __pool) as connection:
 		cur=yield from conn.corsor(aiomysql.DictCursor)
 		yield from cur.execute(sql.replace('?','%s'),args or())
 		if size:
@@ -43,3 +46,19 @@ def execute(sql,args):
 		except BaseException as e:
 			raise
 		return affected
+
+#ORM
+from ORM import Model,StringField,IntegerField
+
+class User(Model):
+	__table__='users'
+
+	id=IntegerField(primary_key=True)
+	name=StringField()
+
+#创建实例：
+user=User(id=123,name='Michael')
+#存入数据库后：
+user.insert()
+#查询所有User对象：
+users=User.findAll()
